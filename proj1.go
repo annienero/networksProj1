@@ -4,30 +4,35 @@ import (
     "net"
     "fmt"
     "os"
-    "io/ioutil"
+    "time"
 )
 
 func main() {
-  //var port string = "27993"
-  //var port string = "80" //Does string addition with '+' really work in go?
+  var port string = "27993"
+  var helloMsg string = "cs3700fall2018 HELLO 001698478\n"
 
-  //var host string = "login-faculty.ccs.neu.edu"
-  //var helloMsg string = "cs3700fall2018 HELLO 001698478\n"
-  //var testMsg string = "HEAD / HTTP/1.0\r\n\r\n"
   if (len(os.Args) == 5 && os.Args[1] == "-p") {
-    //port = os.Args[2]
+    port = os.Args[2]
   }
-  tcpAddr, err := net.ResolveTCPAddr("tcp4", "cbw.sh:27993")
+
+  tcpAddr, err := net.ResolveTCPAddr("tcp4", "cbw.sh:" + port)
   checkError(err)
-  fmt.Println("got tcpAddr")
   conn, err := net.DialTCP("tcp", nil, tcpAddr)
   checkError(err)
-  fmt.Println(conn)
-
-  _, err = conn.Write([]byte("cs3700fall2018 HELLO 001698478\n"))
+  conn.SetReadDeadline(time.Now().Add(time.Second))
+  _, err = conn.Write([]byte(helloMsg))
   checkError(err)
-  result, err := ioutil.ReadAll(conn)
-  fmt.Println(result)
+  
+  var tmp = make([]byte, 256)
+  _, err = conn.Read(tmp)
+  checkError(err)
+  var message = ""
+  for tmp[0] != 0 {
+    var str = string(tmp[:256])
+    message += str
+    tmp = make([]byte, 256)
+    conn.Read(tmp)
+  }
 }
 
 func checkError(err error) {
