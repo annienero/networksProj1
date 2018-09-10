@@ -26,8 +26,9 @@ func main() {
   fmt.Println(result)
 }
 
-func checkError(err) {
+func checkError(err error) {
   if err != nil {
       fmt.Println(err)
+      os.Exit(1)
   }
 }
