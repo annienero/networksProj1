@@ -6,6 +6,7 @@ import (
     "os"
     "strings"
     "strconv"
+    "time"
 )
 
 func main() {
@@ -22,9 +23,9 @@ func main() {
   checkError(err)
   conn, err := net.DialTCP("tcp", nil, tcpAddr)
   checkError(err)
+  conn.SetReadDeadline(time.Now().Add(time.Second * 2))
   _, err = conn.Write([]byte(helloMsg))
   checkError(err)
-
   tokens := strings.Split(readFromConnection(conn), " ")
   messageType := tokens[1]
   arguments := tokens[2:len(tokens)]
@@ -40,14 +41,15 @@ func main() {
     arguments = tokens[2:len(tokens)]
   }
 
-  // print secret flag
-  fmt.Println(arguments[0])
+  // print secret key
+  fmt.Println("secret key = " + string(arguments[0]))
 
   conn.Close()
 }
 
 func checkError(err error) {
   if err != nil {
+      fmt.Println("rip u")
       fmt.Println(err)
       os.Exit(1)
   }
@@ -55,18 +57,19 @@ func checkError(err error) {
 
 func readFromConnection(conn *net.TCPConn) string {
   tmp := make([]byte, 256)
-  bytes_read, err := conn.Read(tmp)
+  _, err := conn.Read(tmp)
   checkError(err)
   message := ""
-  for bytes_read == 256 {
+  for {
     str := string(tmp[:256])
     message += str
+    if strings.Contains(message, "\n") {
+      break
+    }
     tmp = make([]byte, 256)
-    bytes_read, err = conn.Read(tmp)
+    _, err = conn.Read(tmp)
     checkError(err)
   }
-  fmt.Println("bytes read " + strconv.Itoa(bytes_read))
-  message += string(tmp[:256])
   fmt.Println("full message is " + message)
   return message
 }
