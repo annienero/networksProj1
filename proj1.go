@@ -11,7 +11,7 @@ import (
 
 func main() {
   port := "27993"
-  helloMsg := "cs3700fall2018 HELLO 001698478\n"
+  helloMsg := "cs3700fall2018 HELLO 001254621\n"
   countMsg := "cs3700fall2018 COUNT "
 
 
@@ -32,7 +32,6 @@ func main() {
 
   for messageType != "BYE" {
     count := countMsg + strconv.Itoa(evalFind(arguments)) + "\n"
-    fmt.Println("countMessage = " + count)
     _, err = conn.Write([]byte(count))
     checkError(err)
 
@@ -41,15 +40,14 @@ func main() {
     arguments = tokens[2:len(tokens)]
   }
 
-  // print secret key
-  fmt.Println("secret key = " + string(arguments[0]))
+  // print secret flag
+  fmt.Println("secret flag = " + string(arguments[0]))
 
   conn.Close()
 }
 
 func checkError(err error) {
   if err != nil {
-      fmt.Println("rip u")
       fmt.Println(err)
       os.Exit(1)
   }
@@ -70,7 +68,6 @@ func readFromConnection(conn *net.TCPConn) string {
     _, err = conn.Read(tmp)
     checkError(err)
   }
-  fmt.Println("full message is " + message)
   return message
 }
 
