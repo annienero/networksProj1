@@ -6,27 +6,27 @@ import (
     "os"
     "strings"
     "strconv"
-    "time"
 )
 
 func main() {
   //constants
   port := "27993"
-  helloMsg := "cs3700fall2018 HELLO 001254621\n"
   countMsg := "cs3700fall2018 COUNT "
+  hostname := os.Args[len(os.Args) - 2] + ":"
+  id := os.Args[len(os.Args) - 1]
+  helloMsg := "cs3700fall2018 HELLO " + id + "\n"
 
-
-  if (len(os.Args) == 5 && os.Args[1] == "-p") {
+  // if a port has been specified
+  if (os.Args[1] == "-p") {
     port = os.Args[2]
   }
 
   //set up TCP connection
-  tcpAddr, err := net.ResolveTCPAddr("tcp4", "cbw.sh:" + port)
+  tcpAddr, err := net.ResolveTCPAddr("tcp4", hostname + port)
   checkError(err)
   conn, err := net.DialTCP("tcp", nil, tcpAddr)
   checkError(err)
-  conn.SetReadDeadline(time.Now().Add(time.Second * 2)) //does this actually help us? SetReadDeadline just sets a 1-time deadline it doesn't refresh every time we Read()?
-  
+
   //Send the initial HELLO message
   _, err = conn.Write([]byte(helloMsg))
   checkError(err)
@@ -69,7 +69,7 @@ func readFromConnection(conn *net.TCPConn) string {
   for {
     str := string(tmp[:256]) //parse our chunk of bytes into a string
     message += str //add it to the message
-    if strings.Contains(message, "\n") { //if it has a newline, we read the whole message, and we can stop grabbing chunks. 
+    if strings.Contains(message, "\n") { //if it has a newline, we read the whole message, and we can stop grabbing chunks.
       break
     }
     //grab the next byte chunk...
