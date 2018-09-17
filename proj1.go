@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+  //constants
   port := "27993"
   helloMsg := "cs3700fall2018 HELLO 001254621\n"
   countMsg := "cs3700fall2018 COUNT "
@@ -19,17 +20,23 @@ func main() {
     port = os.Args[2]
   }
 
+  //set up TCP connection
   tcpAddr, err := net.ResolveTCPAddr("tcp4", "cbw.sh:" + port)
   checkError(err)
   conn, err := net.DialTCP("tcp", nil, tcpAddr)
   checkError(err)
-  conn.SetReadDeadline(time.Now().Add(time.Second * 2))
+  conn.SetReadDeadline(time.Now().Add(time.Second * 2)) //does this actually help us? SetReadDeadline just sets a 1-time deadline it doesn't refresh every time we Read()?
+  
+  //Send the initial HELLO message
   _, err = conn.Write([]byte(helloMsg))
   checkError(err)
+
+  //tokenize the message into its important parts
   tokens := strings.Split(readFromConnection(conn), " ")
   messageType := tokens[1]
   arguments := tokens[2:len(tokens)]
 
+  //loop executing and replying to the messages until we receive a BYE message
   for messageType != "BYE" {
     count := countMsg + strconv.Itoa(evalFind(arguments)) + "\n"
     _, err = conn.Write([]byte(count))
@@ -43,7 +50,7 @@ func main() {
   // print secret flag
   fmt.Println("secret flag = " + string(arguments[0]))
 
-  conn.Close()
+  conn.Close() //close connection
 }
 
 func checkError(err error) {
@@ -53,17 +60,19 @@ func checkError(err error) {
   }
 }
 
+//Read from the given connection until we read a newline character
 func readFromConnection(conn *net.TCPConn) string {
-  tmp := make([]byte, 256)
+  tmp := make([]byte, 256) //we read in 256 byte chunks -- consider making this a bit bigger?
   _, err := conn.Read(tmp)
   checkError(err)
-  message := ""
+  message := "" //we'll accumulate the message here
   for {
-    str := string(tmp[:256])
-    message += str
-    if strings.Contains(message, "\n") {
+    str := string(tmp[:256]) //parse our chunk of bytes into a string
+    message += str //add it to the message
+    if strings.Contains(message, "\n") { //if it has a newline, we read the whole message, and we can stop grabbing chunks. 
       break
     }
+    //grab the next byte chunk...
     tmp = make([]byte, 256)
     _, err = conn.Read(tmp)
     checkError(err)
@@ -71,6 +80,7 @@ func readFromConnection(conn *net.TCPConn) string {
   return message
 }
 
+//Returns the count, given the arguments of a FIND message
 func evalFind(arguments []string) int {
   toFind := arguments[0]
   toSearch := arguments[1]
