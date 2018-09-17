@@ -48,7 +48,7 @@ func main() {
   }
 
   // print secret flag
-  fmt.Println("secret flag = " + string(arguments[0]))
+  fmt.Println(string(arguments[0]))
 
   conn.Close() //close connection
 }
