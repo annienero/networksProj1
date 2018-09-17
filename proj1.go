@@ -6,6 +6,7 @@ import (
     "os"
     "time"
     "strings"
+    "strconv"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
   conn.SetReadDeadline(time.Now().Add(time.Second))
   _, err = conn.Write([]byte(helloMsg))
   checkError(err)
-  
+
   var tmp = make([]byte, 256)
   _, err = conn.Read(tmp)
   checkError(err)
@@ -34,9 +35,8 @@ func main() {
     tmp = make([]byte, 256)
     conn.Read(tmp)
   }
-  fmt.Println(message)
-  fmt.Println("that was the message") //right now I never actually get to this code for some reason...
-  executeAndReply(message)
+  _, err = conn.Write([]byte(executeAndGetReply(message)))
+  checkError(err)
 }
 
 func checkError(err error) {
@@ -48,18 +48,16 @@ func checkError(err error) {
 
 //A message is a one of the 4 possible messages in this protocol, as described by the assignment
 //A message's type is one of: [HELLO, FIND, COUNT, BYE]
-func executeAndReply(messageString string) {
-  
+func executeAndGetReply(messageString string) string {
+
   tokens := strings.Split(messageString, " ")
   messageType := tokens[1]
   arguments := tokens[2:len(tokens)]
 
-  switch messageType {
-  //FIND and BYE are the only messages we receive
-  case "FIND":
-    fmt.Println("We found " + string(evalFind(arguments)) + " occurences.")
-  case "BYE":
-    fmt.Println("Bye case not implemented yet.")
+  if messageType == "FIND" {
+    return "cs3700fall2018 COUNT " + strconv.Itoa(evalFind(arguments)) + "\n"
+  } else {  
+    return "Bye case not implemented yet."
   }
 }
 
